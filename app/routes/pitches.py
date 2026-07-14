@@ -11,10 +11,11 @@ PITCH_VERSIONS: dict[int, list[dict]] = {}
 @pitches_bp.post("")
 @jwt_required()
 def create_pitch():
-    data = normalize_pitch_payload(request.get_json() or {})
+    payload = request.get_json(silent=True) or {}
+    data = normalize_pitch_payload(payload)
     pitch_id = len(PITCHES) + 1
     data["id"] = pitch_id
-    data["startup_id"] = (request.get_json() or {}).get("startup_id")
+    data["startup_id"] = payload.get("startup_id")
     PITCHES[pitch_id] = data
     return jsonify(data), 201
 
@@ -46,7 +47,7 @@ def list_pitches():
 def add_version(pitch_id: int):
     if pitch_id not in PITCHES:
         return jsonify({"error": "Pitch not found"}), 404
-    payload = request.get_json() or {}
+    payload = request.get_json(silent=True) or {}
     version = {
         "id": len(PITCH_VERSIONS.get(pitch_id, [])) + 1,
         "pitch_id": pitch_id,
