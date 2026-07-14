@@ -13,14 +13,20 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
 
 @auth_bp.post("/register")
 def register():
-    data = request.get_json() or {}
-    user = register_user(data.get("email", ""), data.get("password", ""), data.get("role", "founder"))
+    data = request.get_json(silent=True) or {}
+    email = data.get("email", "")
+    password = data.get("password", "")
+    if not email or not password:
+        return jsonify({"error": "email and password are required"}), 400
+    if email in USERS:
+        return jsonify({"error": "Email already registered"}), 409
+    user = register_user(email, password, data.get("role", "founder"))
     return jsonify(user), 201
 
 
 @auth_bp.post("/login")
 def login():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     user = authenticate_user(data.get("email", ""), data.get("password", ""))
     if not user:
         return jsonify({"error": "Invalid credentials"}), 401
