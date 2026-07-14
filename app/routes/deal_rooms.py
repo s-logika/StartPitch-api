@@ -8,7 +8,7 @@ DEAL_ROOMS: dict[int, dict] = {}
 @deal_rooms_bp.post("")
 @jwt_required()
 def create_deal_room():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     room_id = len(DEAL_ROOMS) + 1
     data["id"] = room_id
     data["documents"] = []
@@ -42,7 +42,7 @@ def add_document(room_id: int):
     room = DEAL_ROOMS.get(room_id)
     if not room:
         return jsonify({"error": "Deal room not found"}), 404
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     doc = {"id": len(room["documents"]) + 1, "name": data.get("name"), "url": data.get("url")}
     room["documents"].append(doc)
     return jsonify(doc), 201
