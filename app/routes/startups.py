@@ -8,7 +8,7 @@ STARTUPS: dict[int, dict] = {}
 @startups_bp.post("")
 @jwt_required()
 def create_startup():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     startup_id = len(STARTUPS) + 1
     data["id"] = startup_id
     STARTUPS[startup_id] = data
@@ -30,6 +30,6 @@ def update_startup(startup_id: int):
     startup = STARTUPS.get(startup_id)
     if not startup:
         return jsonify({"error": "Startup not found"}), 404
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     startup.update(data)
     return jsonify(startup), 200
