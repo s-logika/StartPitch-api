@@ -23,7 +23,7 @@ def patch_me():
     user = USERS.get(claims["email"])
     if not user:
         return jsonify({"error": "User not found"}), 404
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     user["profile"] = {**user.get("profile", {}), **data}
     return jsonify({"updated": True, "profile": user["profile"]}), 200
 
