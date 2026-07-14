@@ -9,7 +9,7 @@ evaluations_bp = Blueprint("evaluations", __name__, url_prefix="/api/v1/evaluati
 @evaluations_bp.post("")
 @jwt_required()
 def create_evaluation():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     job = queue_evaluation(data.get("pitch_version_id", 0))
     return jsonify(job), 202
 
@@ -41,6 +41,6 @@ def override_evaluation(evaluation_id: int):
     job = EVALUATION_JOBS.get(evaluation_id)
     if not job:
         return jsonify({"error": "Evaluation not found"}), 404
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     job["override"] = data
     return jsonify({"updated": True, "evaluation": job}), 200
