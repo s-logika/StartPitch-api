@@ -43,12 +43,12 @@ gunicorn run:app
 
 ### Environment variables
 
-| Variable | Description | Default |
-|---|---|---|
-| `SECRET_KEY` | Flask secret key | `dev-secret-key` |
-| `JWT_SECRET_KEY` | Secret used to sign JWTs | `jwt-dev-secret` |
-| `JWT_ACCESS_TOKEN_EXPIRES` | Access token lifetime (seconds) | `1800` |
-| `JWT_REFRESH_TOKEN_EXPIRES` | Refresh token lifetime (seconds) | `604800` |
+| Variable                   | Description                     | Default          |
+|----------------------------|---------------------------------|------------------|
+| `SECRET_KEY`               | Flask secret key                | `dev-secret-key` |
+| `JWT_SECRET_KEY`           | Secret used to sign JWTs        | `jwt-dev-secret` |
+| `JWT_ACCESS_TOKEN_EXPIRES` | Access token lifetime (seconds) | `1800`           |
+| `JWT_REFRESH_TOKEN_EXPIRES`| Refresh token lifetime (seconds)| `604800`         |
 
 ## Authentication
 
