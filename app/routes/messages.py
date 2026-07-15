@@ -1,17 +1,20 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
+from app.extensions import db
+from app.models.massage import Message
+
 messages_bp = Blueprint("messages", __name__, url_prefix="/api/v1/messages")
-MESSAGES: list[dict] = []
 
 
 @messages_bp.post("")
 @jwt_required()
 def create_message():
     data = request.get_json(silent=True) or {}
-    data["id"] = len(MESSAGES) + 1
-    MESSAGES.append(data)
-    return jsonify(data), 201
+    message = Message(data=data)
+    db.session.add(message)
+    db.session.commit()
+    return jsonify(message.to_dict()), 201
 
 
 @messages_bp.get("")
@@ -19,7 +22,7 @@ def create_message():
 def list_messages():
     thread_with = request.args.get("thread_with")
     deal_room_id = request.args.get("deal_room_id")
-    results = MESSAGES
+    results = [m.to_dict() for m in Message.query.all()]
     if thread_with:
         results = [m for m in results if str(m.get("to")) == thread_with or str(m.get("from")) == thread_with]
     if deal_room_id:
