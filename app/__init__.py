@@ -1,7 +1,8 @@
 from flask import Flask, jsonify
 
 from app.config import Config
-from app.extensions import bcrypt, cors, jwt
+from app.extensions import bcrypt, cors, db, jwt, migrate
+from app import models  # noqa: F401  ensures models are registered with SQLAlchemy metadata
 from app.routes.admin import admin_bp
 from app.routes.auth import auth_bp
 from app.routes.bookings import bookings_bp
@@ -25,6 +26,8 @@ def create_app() -> Flask:
     bcrypt.init_app(app)
     jwt.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
+    db.init_app(app)
+    migrate.init_app(app, db)
 
     blueprints = [
         auth_bp,
