@@ -1,18 +1,20 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
+from app.extensions import db
+from app.models.booking import Booking
+
 bookings_bp = Blueprint("bookings", __name__, url_prefix="/api/v1/bookings")
-BOOKINGS: dict[int, dict] = {}
 
 
 @bookings_bp.post("")
 @jwt_required()
 def create_booking():
     data = request.get_json(silent=True) or {}
-    booking_id = len(BOOKINGS) + 1
-    data["id"] = booking_id
-    BOOKINGS[booking_id] = data
-    return jsonify(data), 201
+    booking = Booking(data=data)
+    db.session.add(booking)
+    db.session.commit()
+    return jsonify(booking.to_dict()), 201
 
 
 @bookings_bp.get("")
@@ -20,7 +22,7 @@ def create_booking():
 def list_bookings():
     user_id = request.args.get("user_id")
     role = request.args.get("role")
-    results = list(BOOKINGS.values())
+    results = [b.to_dict() for b in Booking.query.all()]
     if user_id:
         results = [b for b in results if str(b.get("user_id")) == user_id]
     if role:
@@ -31,18 +33,20 @@ def list_bookings():
 @bookings_bp.patch("/<int:booking_id>")
 @jwt_required()
 def update_booking(booking_id: int):
-    booking = BOOKINGS.get(booking_id)
+    booking = db.session.get(Booking, booking_id)
     if not booking:
         return jsonify({"error": "Booking not found"}), 404
-    booking.update(request.get_json(silent=True) or {})
-    return jsonify(booking), 200
+    booking.data = {**(booking.data or {}), **(request.get_json(silent=True) or {})}
+    db.session.commit()
+    return jsonify(booking.to_dict()), 200
 
 
 @bookings_bp.post("/<int:booking_id>/feedback")
 @jwt_required()
 def booking_feedback(booking_id: int):
-    booking = BOOKINGS.get(booking_id)
+    booking = db.session.get(Booking, booking_id)
     if not booking:
         return jsonify({"error": "Booking not found"}), 404
-    booking["feedback"] = request.get_json(silent=True) or {}
-    return jsonify({"updated": True, "booking": booking}), 201
+    booking.data = {**(booking.data or {}), "feedback": request.get_json(silent=True) or {}}
+    db.session.commit()
+    return jsonify({"updated": True, "booking": booking.to_dict()}), 201
