@@ -2,8 +2,9 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from app.services.auth_service import (
-    USERS,
     authenticate_user,
+    get_user_by_email,
+    get_user_by_id,
     issue_tokens,
     register_user,
 )
@@ -18,7 +19,7 @@ def register():
     password = data.get("password", "")
     if not email or not password:
         return jsonify({"error": "email and password are required"}), 400
-    if email in USERS:
+    if get_user_by_email(email):
         return jsonify({"error": "Email already registered"}), 409
     user = register_user(email, password, data.get("role", "founder"))
     return jsonify(user), 201
@@ -48,7 +49,7 @@ def oauth_linkedin():
 @jwt_required(refresh=True)
 def refresh():
     user_id = get_jwt_identity()
-    user = next((u for u in USERS.values() if str(u["id"]) == str(user_id)), None)
+    user = get_user_by_id(int(user_id))
     if not user:
         return jsonify({"error": "User not found"}), 404
     return jsonify(issue_tokens(user)), 200
