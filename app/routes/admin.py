@@ -1,9 +1,10 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import get_jwt, jwt_required
 
-admin_bp = Blueprint("admin", __name__, url_prefix="/api/v1/admin")
+from app.extensions import db
+from app.models.audit_log import AuditLog
 
-AUDIT_LOGS: list[dict] = []
+admin_bp = Blueprint("admin", __name__, url_prefix="/api/v1/admin")
 
 
 def _is_admin() -> bool:
@@ -24,7 +25,9 @@ def pending_verifications():
 def approve_verification(user_id: int):
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
-    AUDIT_LOGS.append({"event": "verification_approved", "user_id": user_id})
+    log = AuditLog(event="verification_approved", data={"user_id": user_id})
+    db.session.add(log)
+    db.session.commit()
     return jsonify({"approved": True, "user_id": user_id}), 200
 
 
@@ -33,7 +36,7 @@ def approve_verification(user_id: int):
 def audit_logs():
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
-    return jsonify(AUDIT_LOGS), 200
+    return jsonify([log.to_dict() for log in AuditLog.query.all()]), 200
 
 
 @admin_bp.post("/moderation/<int:content_id>/flag")
@@ -41,5 +44,7 @@ def audit_logs():
 def flag_content(content_id: int):
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
-    AUDIT_LOGS.append({"event": "content_flagged", "content_id": content_id})
+    log = AuditLog(event="content_flagged", data={"content_id": content_id})
+    db.session.add(log)
+    db.session.commit()
     return jsonify({"flagged": True, "content_id": content_id}), 200
