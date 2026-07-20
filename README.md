@@ -2,12 +2,11 @@
 
 Flask backend API for StartPitch — a platform connecting startup founders with investors and mentors. Handles auth, startup/pitch submissions, AI-assisted evaluations, investor matching, mentor bookings, deal rooms, messaging, and notifications.
 
-> **Note:** Data models (users, startups, pitches, matches, etc.) are currently held in in-memory Python dicts/lists inside each route module — there is no database wired up yet. All data resets when the server restarts.
-
 ## Tech stack
 
 - Python 3.12
 - Flask 3
+- SQLAlchemy + Flask-Migrate (MySQL via PyMySQL)
 - flask-jwt-extended (auth)
 - flask-bcrypt (password hashing)
 - flask-cors
@@ -27,15 +26,23 @@ Copy `.env.example` to `.env` and adjust as needed:
 cp .env.example .env
 ```
 
+Create the MySQL database (only the database itself — tables are created automatically, see below):
+
+```sql
+CREATE DATABASE startpitch_db;
+```
+
 Run the development server:
 
 ```bash
 python run.py
 ```
 
+Database migrations are applied automatically on startup (`run.py` runs `flask db upgrade` before serving requests), so there's no separate migration step — just make sure the database from `DB_NAME`/`DATABASE_URL` exists and is reachable.
+
 The API will be available at `http://127.0.0.1:5000`.
 
-For production, the `Procfile` runs it via gunicorn:
+For production, the `Procfile` runs it via gunicorn (migrations still auto-apply on import):
 
 ```bash
 gunicorn run:app
