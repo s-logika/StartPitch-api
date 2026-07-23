@@ -38,14 +38,18 @@ Run the development server:
 python run.py
 ```
 
-Database migrations are applied automatically on startup (`run.py` runs `flask db upgrade` before serving requests), so there's no separate migration step — just make sure the database from `DB_NAME`/`DATABASE_URL` exists and is reachable.
+Before running the server, apply migrations:
+
+```bash
+flask db upgrade
+```
 
 The API will be available at `http://127.0.0.1:5000`.
 
-For production, the `Procfile` runs it via gunicorn (migrations still auto-apply on import):
+For production, the `Procfile` runs it via gunicorn, bound to the platform-provided `$PORT` (required by Railway/Heroku-style hosts), with migrations applied beforehand via `railway.json`'s `preDeployCommand`:
 
 ```bash
-gunicorn run:app
+gunicorn run:app --bind 0.0.0.0:$PORT
 ```
 
 ### Environment variables
