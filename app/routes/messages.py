@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required
 
 from app.extensions import db
 from app.models.massage import Message
+from app.services.notification_service import send_notification
 
 messages_bp = Blueprint("messages", __name__, url_prefix="/api/v1/messages")
 
@@ -14,6 +15,9 @@ def create_message():
     message = Message(data=data)
     db.session.add(message)
     db.session.commit()
+    recipient_id = data.get("to")
+    if recipient_id:
+        send_notification(int(recipient_id), "You have a new message.")
     return jsonify(message.to_dict()), 201
 
 
