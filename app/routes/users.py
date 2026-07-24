@@ -14,7 +14,7 @@ def get_me():
     user = get_user_by_id(int(user_id))
     if not user:
         return jsonify({"error": "User not found"}), 404
-    return jsonify(user.to_dict(include_profile=False)), 200
+    return jsonify(user.to_dict()), 200
 
 
 @users_bp.patch("/me")
