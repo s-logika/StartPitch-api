@@ -7,6 +7,16 @@ from app.models.mentor import Mentor
 mentors_bp = Blueprint("mentors", __name__, url_prefix="/api/v1/mentors")
 
 
+@mentors_bp.post("")
+@jwt_required()
+def create_mentor():
+    data = request.get_json(silent=True) or {}
+    mentor = Mentor(data=data)
+    db.session.add(mentor)
+    db.session.commit()
+    return jsonify(mentor.to_dict()), 201
+
+
 @mentors_bp.get("")
 @jwt_required()
 def list_mentors():
