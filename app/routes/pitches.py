@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required
 
 from app.extensions import db
 from app.models.pitch import Pitch, PitchVersion
+from app.models.startup import Startup
 from app.services.file_service import normalize_pitch_payload
 
 pitches_bp = Blueprint("pitches", __name__, url_prefix="/api/v1/pitches")
@@ -12,8 +13,11 @@ pitches_bp = Blueprint("pitches", __name__, url_prefix="/api/v1/pitches")
 @jwt_required()
 def create_pitch():
     payload = request.get_json(silent=True) or {}
+    startup_id = payload.get("startup_id")
+    if not db.session.get(Startup, startup_id):
+        return jsonify({"error": "Startup not found"}), 404
     data = normalize_pitch_payload(payload)
-    pitch = Pitch(startup_id=payload.get("startup_id"), data=data)
+    pitch = Pitch(startup_id=startup_id, data=data)
     db.session.add(pitch)
     db.session.commit()
     return jsonify(pitch.to_dict()), 201
